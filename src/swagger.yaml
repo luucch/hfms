@@ -1,0 +1,413 @@
+openapi: 3.0.0
+
+components:
+  responses:
+    ValidateError:
+      description: Invalid request body.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              validateErrors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    value:
+                      type: string
+                      description: 요청시 입력한 값
+                    msg:
+                      type: string
+                      description: 에러 메세지
+                    param:
+                      type: string
+                      description: 에러 파라미터
+                    location:
+                      type: string
+                      description: 에러 대상
+    UnexpectedError:
+      description: Unexpected error.
+    NotContent:
+      description: OK
+    NotFound:
+      description: The specified ID was not found.
+    NotFoundUpdate:
+      description: No target to be updated was found.
+    NotFoundDelete:
+      description: No target to be deleted was found.
+
+  schemas:
+    Project:
+      type: object
+      required:
+        - name
+      properties:
+        id:
+          type: string
+          description: 10자리 Hash ID
+        name:
+          type: string
+          description: 프로젝트명
+        useAuth:
+          type: boolean
+          description: 파트너 응답 페이지 접근시 인증 여부
+          default: false
+        useNotification:
+          type: boolean
+          description: 파트너 응답시 슬랙 알람 여부
+          default: false
+        hide:
+          type: boolean
+          description: 프로젝트 숨김 여부(관리자용)
+          default: false
+        createdAt:
+          type: string
+          format: date-time
+          description: 생성일시
+        updatedAt:
+          type: string
+          format: date-time
+          description: 수정일시
+
+    Partner:
+      type: object
+      required:
+        - projectID
+        - name
+      properties:
+        id:
+          type: string
+          description: 10자리 Hash ID
+        projectID:
+          type: string
+          description: 프로젝트 ID
+        groupID:
+          type: string
+          nullable: true
+          description: 그룹 ID
+        name:
+          type: string
+          description: 파트너명
+        email:
+          type: string
+          description: 파트너 이메일
+        mobile:
+          type: string
+          description: 파트너 휴대폰번호
+        logoUrl:
+          type: string
+          description: 파트너 로고 url
+        readonly:
+          type: boolean
+          description: 응답 데이터 입력제한 여부
+          default: false
+        responsesCount:
+          type: integer
+          format: int32
+          description: 응답 수
+        createdAt:
+          type: string
+          format: date-time
+          description: 생성일시
+        updatedAt:
+          type: string
+          format: date-time
+          description: 수정일시
+        responses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Response'
+        forms:
+          type: array
+          items:
+            $ref: '#/components/schemas/Form'
+        sendNotifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/SendNotification'
+        group:
+          $ref: '#/components/schemas/Group'
+        contents:
+          type: array
+          items:
+            $ref: '#/components/schemas/Content'
+
+    SendNotification:
+      type: object
+      required:
+        - partnerID
+        - type
+      properties:
+        id:
+          type: string
+          description: 10자리 Hash ID
+        partnerID:
+          type: string
+          description: 파트너 ID
+        type:
+          type: string
+          description: 발송 타입
+          enum:
+            - mail
+            - message
+        objectID:
+          type: string
+          description: 발송결과 고유 ID
+        event:
+          type: string
+          description: requested = 요청성공 / request_failed = 요청실패 / delivered = 전송성공 / failed = 전송실패 / OPENED = 열람
+          enum:
+            - requested
+            - request_failed
+            - OPENED
+            - delivered
+            - failed
+        json:
+          type: string
+          description: 발송결과 응답 json
+        createdAt:
+          type: string
+          format: date-time
+          description: 생성일시
+
+    Form:
+      type: object
+      required:
+        - projectID
+        - type
+        - title
+        - order
+      properties:
+        id:
+          type: string
+          description: 10자리 Hash ID
+        projectID:
+          type: string
+          description: 프로젝트 ID
+        type:
+          type: string
+          description: 양식 타입
+          enum:
+            - short_text
+            - long_text
+            - link_url
+            - video_url
+            - file
+            - file_image
+            - file_pdf
+        title:
+          type: string
+          description: 양식 제목
+        description:
+          type: string
+          description: 양식 설명
+        order:
+          type: integer
+          format: int32
+          description: 양식 순서
+        labeled:
+          type: boolean
+          description: 라벨 여부
+          default: false
+        multiple:
+          type: boolean
+          description: 복수 입력 여부
+          default: false
+        createdAt:
+          type: string
+          format: date-time
+          description: 생성일시
+        updatedAt:
+          type: string
+          format: date-time
+          description: 수정일시
+        responses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Response'
+
+    Response:
+      type: object
+      required:
+        - partnerID
+        - formID
+      properties:
+        id:
+          type: string
+          description: 10자리 Hash ID
+        partnerID:
+          type: string
+          description: 파트너 ID
+        formID:
+          type: string
+          description: 양식 ID
+        label:
+          type: string
+          description: 라벨 (form.labeled = true 일 때 노출)
+        data:
+          type: string
+          description: 양식 입력 데이터
+        createdAt:
+          type: string
+          format: date-time
+          description: 생성일시
+        updatedAt:
+          type: string
+          format: date-time
+          description: 수정일시
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+        responseHistories:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResponseHistory'
+
+    ResponseHistory:
+      type: object
+      required:
+        - responseID
+        - formID
+        - partnerID
+        - action
+      properties:
+        id:
+          type: string
+          description: 10자리 Hash ID
+        responseID:
+          type: string
+          description: 응답 ID
+        formID:
+          type: string
+          description: 양식 ID
+        partnerID:
+          type: string
+          description: 파트너 ID
+        title:
+          type: string
+          description: 양식 제목 또는 내역 제목
+        action:
+          type: string
+          description: 내역 타입
+          enum:
+            - update
+            - insert
+        createdAt:
+          type: string
+          format: date-time
+          description: 생성일시
+
+    File:
+      type: object
+      required:
+        - responseID
+      properties:
+        id:
+          type: string
+          description: 10자리 Hash ID
+        responseID:
+          type: string
+          description: 응답 ID
+        url:
+          type: string
+          description: 파일 url
+        key:
+          type: string
+          description: 파일 S3 key
+        label:
+          type: string
+          description: 파일 라벨 (form.labeled = true 일 때 노출)
+        name:
+          type: string
+          description: 파일명
+        size:
+          type: integer
+          format: int32
+          description: 파일 용량
+        createdAt:
+          type: string
+          format: date-time
+          description: 생성일시
+        updatedAt:
+          type: string
+          format: date-time
+          description: 수정일시
+
+    Group:
+      type: object
+      required:
+        - projectID
+      properties:
+        id:
+          type: string
+          description: 10자리 Hash ID
+        projectID:
+          type: string
+          description: 프로젝트 ID
+        name:
+          type: string
+          description: 그룹 명
+        createdAt:
+          type: string
+          format: date-time
+          description: 생성일시
+        updatedAt:
+          type: string
+          format: date-time
+          description: 수정일시
+        partners:
+          type: array
+          items:
+            $ref: '#/components/schemas/Partner'
+        partnersCount:
+          type: integer
+          format: int32
+          description: 파트너 수
+
+    Template:
+      type: object
+      required:
+        - projectID
+      properties:
+        id:
+          type: string
+          description: 10자리 Hash ID
+        projectID:
+          type: string
+          description: 프로젝트 ID
+        name:
+          type: string
+          description: 템플릿 명
+        url:
+          type: string
+          description: 템플릿 접속 URL
+        createdAt:
+          type: string
+          format: date-time
+          description: 생성일시
+        updatedAt:
+          type: string
+          format: date-time
+          description: 수정일시
+        forms:
+          type: array
+          items:
+            $ref: '#/components/schemas/Form'
+
+    Content:
+      type: array
+      items:
+        allOf:
+          - $ref: '#/components/schemas/Form'
+          - type: object
+            properties:
+              responses:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Response'
+              files:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'

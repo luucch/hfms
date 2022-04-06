@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "CommonJS",
+    "esModuleInterop": true,
+    "outDir": "./dist",
+    "sourceMap": true,
+    "strict": true,
+    "rootDir": "src",
+    "allowSyntheticDefaultImports": true,
+    "downlevelIteration": true
+  },
+  "exclude": ["node_modules"]
+}
