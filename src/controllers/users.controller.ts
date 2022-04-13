@@ -15,6 +15,7 @@ usersRouter.post(
       const token = await UserService.login(req.body.id, req.body.password);
       if(token == null) {
         res.status(401).send('login failed');
+        return;
       }
       res.status(200).send(token);
     } catch (e) {
