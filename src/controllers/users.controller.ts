@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
-import validateHandler from '../middleware/validate-handler';
 import { body, header, query } from 'express-validator';
 import * as UserService from '../services/users.service';
+import * as GroupService from '../services/groups.service';
 import authHandler from '../middleware/auth-handler';
 import { UserInterface } from '../models/users.model';
 
@@ -28,12 +28,16 @@ usersRouter.get(
   '/me',
   authHandler,
   async (req: Request, res: Response) => {
-    console.log(res.locals);
     try {
       const user = await UserService.findByUserId(res.locals.userId) as UserInterface;
+      const group = await GroupService.findByGroupId(user.groupId);
       const userRes = {
         id: user.id,
-        groupId: user.groupId,
+        group: {
+          id: group.id,
+          name: group.name,
+          annualGoal: group.annualGoal
+        },
         name: user.name,
         email: user.email,
       }

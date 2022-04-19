@@ -3,7 +3,6 @@ import { validationResult } from 'express-validator';
 
 const validateHandler = (validations: any) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    console.log('?');
     await Promise.all(
       validations.map((validation: any) => validation.run(req)),
     );
