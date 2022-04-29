@@ -1,11 +1,11 @@
 import { query, Request, Response, Router } from 'express';
 import { body, param } from 'express-validator';
 import * as LedgerService from '../services/ledgers.service';
-import * as CommonService from '../services/common.service';
 import { LedgerInterface, LedgerModel } from '../models/ledgers.model';
 import validateHandler from '../middleware/validate-handler';
-import { TABLE_LIST } from '../models/tables.model';
 import authHandler from '../middleware/auth-handler';
+import moment from 'moment';
+moment().format();
 
 const ledgersRouter = Router();
 
@@ -16,27 +16,22 @@ ledgersRouter.post(
   ]),
   authHandler,
   async (req: Request, res: Response) => {
-    console.log(req.body);
     try {
-      const date = new Date(req.body.date);
-      const year = date.getFullYear();
-      const month = ('0' + (date.getMonth() + 1)).slice(-2);
-      const day = ('0' + date.getDate()).slice(-2);
-
-      const oneJan = new Date(date.getFullYear(),0,1);
-      const numberOfDays = Math.floor((date.getTime() - oneJan.getTime()) / (24 * 60 * 60 * 1000));
+      const date = moment(req.body.date);
+      const year = date.year() + '';
+      const month = ('0' + (date.month() + 1)).slice(-2);
+      const day = ('0' + date.date()).slice(-2);
 
       const newLedger = new LedgerModel();
       newLedger.date = Number(year + month + day);
-      newLedger.year = year;
-      newLedger.week = Math.ceil(( date.getDay() + 1 + numberOfDays) / 7);
+      newLedger.year = date.year();
+      newLedger.week = date.week();
       newLedger.sales = req.body.sales;
       newLedger.visitors = req.body.visitors;
       newLedger.newVisitors = req.body.newVisitors;
       newLedger.nonBenefit = req.body.nonBenefit;
       newLedger.newSales = req.body.newSales;
       newLedger.groupId = res.locals.groupId;
-      console.log(newLedger);
       await LedgerService.insertAndUpdate(newLedger);
 
       res.status(200).send(newLedger);
